@@ -6,7 +6,7 @@ import org.jetbrains.kotlinx.dataframe.api.cast
 import org.jetbrains.kotlinx.dataframe.api.toList
 import org.jetbrains.kotlinx.dataframe.io.readCSV
 
-@DataSchema
+@DataSchema(isOpen = false)
 data class Waypoint(
     val timestamp: Double,
     val latitude: Double,
