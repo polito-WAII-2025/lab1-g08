@@ -18,16 +18,9 @@ data class CustomParameters(
                 ?: throw IllegalArgumentException("File not found: $resourcePath")
 
             val data = Yaml().load<Map<String, Any?>>(inputStream)
-            val validatedData = validateAndCompleteCustomParameters(data, maxTravelDistance)
 
+            return  extractCustomParameters(data, maxTravelDistance)
 
-            return CustomParameters(
-                validatedData["earthRadiusKm"] as Double,
-                validatedData["geofenceCenterLatitude"] as Double,
-                validatedData["geofenceCenterLongitude"] as Double,
-                validatedData["geofenceRadiusKm"] as Double,
-                validatedData["mostFrequentedAreaRadiusKm"] as Double
-            )
         }
 
         private fun calculateDefaultRadius(maxTravelDistance: Double): Double {
@@ -37,7 +30,7 @@ data class CustomParameters(
             }
         }
 
-        private fun validateAndCompleteCustomParameters(data: Map<String, Any?>, maxTravelDistance: Double): Map<String, Double> {
+        private fun extractCustomParameters(data: Map<String, Any?>, maxTravelDistance: Double): CustomParameters {
 
             val result = mutableMapOf<String, Double>()
 
@@ -54,28 +47,19 @@ data class CustomParameters(
                 }
 
                 val value = data[param]
-                if (value !is Double && value !is Int && value !is Float) {
-                    throw IllegalArgumentException("$param must be a number, found: ${value?.javaClass?.simpleName}")
-                }
 
                 result[param] = when (value) {
-                    is Double -> value
-                    is Int -> value.toDouble()
-                    is Float -> value.toDouble()
+                    is Number  -> value.toDouble()
                     else -> throw IllegalArgumentException("$param must be a number")
                 }
             }
 
             if (data.containsKey("mostFrequentedAreaRadiusKm")) {
+
                 val value = data["mostFrequentedAreaRadiusKm"]
-                if (value !is Double && value !is Int && value !is Float) {
-                    throw IllegalArgumentException("mostFrequentedAreaRadiusKm must be a number, found: ${value?.javaClass?.simpleName}")
-                }
 
                 result["mostFrequentedAreaRadiusKm"] = when (value) {
-                    is Double -> value
-                    is Int -> value.toDouble()
-                    is Float -> value.toDouble()
+                    is Number  -> value.toDouble()
                     else -> throw IllegalArgumentException("mostFrequentedAreaRadiusKm must be a number")
                 }
             } else {
@@ -83,7 +67,13 @@ data class CustomParameters(
                 result["mostFrequentedAreaRadiusKm"] = calculateDefaultRadius(maxTravelDistance)
             }
 
-            return result
+            return CustomParameters(
+                result["earthRadiusKm"] as Double,
+                result["geofenceCenterLatitude"] as Double,
+                result["geofenceCenterLongitude"] as Double,
+                result["geofenceRadiusKm"] as Double,
+                result["mostFrequentedAreaRadiusKm"] as Double
+            )
         }
     }
 }
