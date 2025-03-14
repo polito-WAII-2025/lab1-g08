@@ -16,7 +16,7 @@ repositories {
 dependencies {
     implementation ("org.jetbrains.kotlinx:dataframe:0.15.0-RC3")
     implementation("org.slf4j:slf4j-nop:2.0.17")
-    implementation("org.yaml:snakeyaml:1.30")//aggiunto Alice per leggere i file yaml
+    implementation("org.yaml:snakeyaml:2.3")
     testImplementation(kotlin("test"))
 }
 
