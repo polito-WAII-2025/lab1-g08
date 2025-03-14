@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.10"
     application
     id("com.gradleup.shadow") version "8.3.5"
+    id("com.google.devtools.ksp") version "2.1.10-1.0.31"
     id("org.jetbrains.kotlinx.dataframe") version "0.15.0-RC3"
 }
 
