@@ -162,3 +162,86 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
             acc + 1
     }
 }
+
+fun List<Waypoint>.distanceTravelledExact(earthRadius: Double = EARTH_RADIUS): Double {
+    if (this.size < 2)
+        return 0.0
+
+    val h3 = H3Singleton.h3
+    return this.subList(1, this.size).foldIndexed(0.0) { i, acc, w ->
+        val wp1 = LatLng(this[i].latitude, this[i].longitude)
+        val wp2 = LatLng(w.latitude, w.longitude)
+        acc + h3.greatCircleDistance(wp1, wp2, LengthUnit.rads)
+    } * earthRadius
+}
+
+fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+    val h3 = H3Singleton.h3
+
+    if (this.size>1) {
+        val first = LatLng(this[0].latitude, this[0].longitude)
+        val second = LatLng(this[1].latitude, this[1].longitude)
+        var waypointsDistance = h3.greatCircleDistance(first, second, LengthUnit.rads) * earthRadius
+        waypointsDistance = waypointsRealDistance(waypointsDistance)
+
+        println("Distanza tra waypoints :$waypointsDistance")
+        return waypointsDistance*(this.size -2)
+    }
+    else {
+        // if there is only 1 point, the distance is 0
+        return 0.0
+    }
+
+}
+
+fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+    if (this.size < 2)
+        return 0.0
+
+    val h3 = H3Singleton.h3
+    return this.subList(1, this.size).foldIndexed(0.0) { i, acc, w ->
+        val wp1 = LatLng(this[i].latitude, this[i].longitude)
+        val wp2 = LatLng(w.latitude, w.longitude)
+        if (i>1 && (wp1==wp2) && i<this.size-2){
+            println("CAMPIO PERCORSO: $wp1")
+            val wp0 = LatLng(this[i-1].latitude, this[i-1].longitude)
+            val waypointsDistance = h3.greatCircleDistance(wp0, wp2, LengthUnit.rads) * earthRadius
+            val oldWaypointsDistance = waypointsRealDistance(waypointsDistance)
+            acc - oldWaypointsDistance + waypointsDistance
+        }else if (i==this.size-2) {
+            val waypointsDistance = h3.greatCircleDistance(wp1, wp2, LengthUnit.rads) * earthRadius
+            acc + waypointsDistance
+        }else {
+            val waypointsDistance = waypointsRealDistance(h3.greatCircleDistance(wp1, wp2, LengthUnit.rads) * earthRadius)
+            acc + waypointsDistance
+        }
+    }
+}
+
+private fun waypointsRealDistance(areaDistance: Double) : Double {
+    return when {
+        areaDistance < 0.05 -> 0.0
+        areaDistance < 0.5 -> 0.1
+        areaDistance < 1.5 -> 1.0
+        areaDistance < 2.5 -> 2.0
+        areaDistance < 3.5 -> 3.0
+        areaDistance < 5.5 -> 5.0
+        else -> areaDistance
+    }
+}
+
+fun List<Waypoint>.printStops() {
+    println("\nPATH: ")
+
+    println("Starting point: " + LatLng(this[0].latitude, this[0].longitude))
+
+    this.subList(1, this.size).forEachIndexed { i: Int, w: Waypoint ->
+        val wp1 = LatLng(this[i].latitude, this[i].longitude)
+        val wp2 = LatLng(w.latitude, w.longitude)
+        if ((i > 1) && (wp1 == wp2) && (i < (this.size - 2))){
+            println("Intermediate stop: $wp1")
+        }
+    }
+    println("Arrival point: " + LatLng(this.last().latitude, this.last().longitude))
+}
+

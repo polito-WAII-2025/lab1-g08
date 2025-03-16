@@ -13,5 +13,8 @@ fun main() {
     println("mostFrequentedArea: $res")
     println("Cittadella design: ${points.pointsInArea(LatLng(res.first.latitude, res.first.longitude), 1.0)}")
     println("mostFrequentedAreaPrecise: ${points.mostFrequentedAreaPrecise(1.0)}")
+    println("furthestDistanceTravelledExact: ${points.distanceTravelledExact()}")
+    println("furthestDistanceTravelledApproximated: ${points.distanceTravelledApproximated()}")
+    points.printStops()
     //println(points)
 }
