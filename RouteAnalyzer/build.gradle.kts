@@ -14,6 +14,7 @@ repositories {
 }
 
 dependencies {
+    implementation("com.uber:h3:4.1.1")
     implementation ("org.jetbrains.kotlinx:dataframe:0.15.0-RC3")
     implementation("org.slf4j:slf4j-nop:2.0.17")
     implementation("org.yaml:snakeyaml:2.3")
