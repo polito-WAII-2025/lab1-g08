@@ -73,16 +73,16 @@ fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double): Pair<Waypoint, Dou
 }
 
 /**
- * Computes the number of points outside the specified geofence
+ * Finds the list of points outside a user provided geofence
  *
  * @param geofenceCenter the center of the geofence
  * @param geofenceRadius the radius of the geofence in Km
  * @param earthRadius the radius of the Earth in Km
- * @return Count of points outside geofence
+ * @return List of points outside the geofence
  */
-fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double): Int {
+fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double): List<Waypoint> {
     val h3 = H3Singleton.h3
-    return this.count {
+    return this.filter {
         val currentPoint = LatLng(it.latitude, it.longitude)
         h3.greatCircleDistance(geofenceCenter, currentPoint, LengthUnit.rads) * earthRadius > geofenceRadius
     }

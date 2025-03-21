@@ -2,7 +2,6 @@ package it.polito.g08
 
 import com.uber.h3core.util.LatLng
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
 import java.io.File
@@ -14,7 +13,7 @@ fun main() {
  	val parameters = CustomParameters.fromYAML("/custom-parameters.yml", points)
     val maxDistanceFromStartPair = points.maxDistanceFromStart(parameters.earthRadiusKm)
     val mostFrequentedAreaPair = points.mostFrequentedArea(parameters.mostFrequentedAreaRadiusKm)
-    val wayPointsNumberOutsideGeofence = points.waypointsOutsideGeofence(
+    val waypointsNumberOutsideGeofence = points.waypointsOutsideGeofence(
         LatLng(parameters.geofenceCenterLatitude, parameters.geofenceCenterLongitude),
         parameters.geofenceRadiusKm,
         parameters.earthRadiusKm
@@ -39,8 +38,8 @@ fun main() {
                 parameters.geofenceCenterLongitude
             ),
             areaOrDistance = parameters.geofenceRadiusKm,
-            count = wayPointsNumberOutsideGeofence,
-            waypoints = listOf(), //TODO change to the waypoints outside the geofence
+            count = waypointsNumberOutsideGeofence.size,
+            waypoints = waypointsNumberOutsideGeofence,
             firstParamName = "centralWaypoint",
             secondParamName = "areaRadiusKm",
             thirdParamName = "count",
