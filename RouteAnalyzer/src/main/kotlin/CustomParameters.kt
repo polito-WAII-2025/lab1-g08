@@ -1,7 +1,10 @@
 package it.polito.g08
 
 import org.yaml.snakeyaml.Yaml
+import java.io.File
 import java.io.InputStream
+import java.nio.file.Files
+import java.nio.file.Paths
 
 data class CustomParameters(
     val earthRadiusKm: Double,
@@ -14,7 +17,7 @@ data class CustomParameters(
 
         fun fromYAML(resourcePath: String, points: List<Waypoint>): CustomParameters {
 
-            val inputStream: InputStream = object {}.javaClass.getResourceAsStream(resourcePath)
+            val inputStream: InputStream = Files.newInputStream(Paths.get(resourcePath))
                 ?: throw IllegalArgumentException("File not found: $resourcePath")
 
             val data = Yaml().load<Map<String, Any?>>(inputStream)

@@ -13,6 +13,8 @@ import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.cast
 import org.jetbrains.kotlinx.dataframe.api.toList
 import org.jetbrains.kotlinx.dataframe.io.readCSV
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import kotlin.math.*
 
@@ -32,7 +34,7 @@ data class Waypoint(
     companion object {
         fun fromCSV(resourcePath: String, cellResolution: Int = 15): List<Waypoint> {
             val h3 = H3Singleton.h3
-            val inputStream = object {}.javaClass.getResourceAsStream(resourcePath)
+            val inputStream = Files.newInputStream(Paths.get(resourcePath))
                 ?: throw IllegalArgumentException("File not found: $resourcePath")
 
             return DataFrame.readCSV(

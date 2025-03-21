@@ -14,5 +14,4 @@ WORKDIR /app
 
 COPY --from=build /app/build/libs/*-all.jar /app/app.jar
 
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "app.jar"]
