@@ -12,14 +12,14 @@ data class CustomParameters(
 ) {
     companion object {
 
-        fun fromYAML(resourcePath: String, maxTravelDistance: Double): CustomParameters {
+        fun fromYAML(resourcePath: String, points: List<Waypoint>): CustomParameters {
 
             val inputStream: InputStream = object {}.javaClass.getResourceAsStream(resourcePath)
                 ?: throw IllegalArgumentException("File not found: $resourcePath")
 
             val data = Yaml().load<Map<String, Any?>>(inputStream)
 
-            return  extractCustomParameters(data, maxTravelDistance)
+            return  extractCustomParameters(data, points)
 
         }
 
@@ -30,7 +30,7 @@ data class CustomParameters(
             }
         }
 
-        private fun extractCustomParameters(data: Map<String, Any?>, maxTravelDistance: Double): CustomParameters {
+        private fun extractCustomParameters(data: Map<String, Any?>, points: List<Waypoint>): CustomParameters {
 
             val result = mutableMapOf<String, Double>()
 
@@ -63,8 +63,9 @@ data class CustomParameters(
                     else -> throw IllegalArgumentException("mostFrequentedAreaRadiusKm must be a number")
                 }
             } else {
-
-                result["mostFrequentedAreaRadiusKm"] = calculateDefaultRadius(maxTravelDistance)
+                result["mostFrequentedAreaRadiusKm"] = calculateDefaultRadius(
+                    points.maxDistanceFromStart(result["earthRadiusKm"] as Double)?.second?:0.0
+                )
             }
 
             return CustomParameters(

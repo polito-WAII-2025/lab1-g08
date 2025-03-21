@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.10"
+    kotlin("plugin.serialization") version "1.9.0"
     application
     id("com.gradleup.shadow") version "8.3.5"
     id("com.google.devtools.ksp") version "2.1.10-1.0.31"
@@ -18,6 +19,7 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:dataframe:0.15.0-RC3")
     implementation("org.slf4j:slf4j-nop:2.0.17")
     implementation("org.yaml:snakeyaml:2.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
     testImplementation(kotlin("test"))
 }
 

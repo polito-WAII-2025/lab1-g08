@@ -4,6 +4,8 @@ import com.uber.h3core.AreaUnit
 import com.uber.h3core.H3Core
 import com.uber.h3core.LengthUnit
 import com.uber.h3core.util.LatLng
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.ParserOptions
@@ -18,14 +20,14 @@ private object H3Singleton {
     val h3: H3Core = H3Core.newInstance()
 }
 
-const val EARTH_RADIUS: Double = 6371.0088 // In Km
 
+@Serializable
 @DataSchema(isOpen = false)
 data class Waypoint(
     val timestamp: Double,
     val latitude: Double,
     val longitude: Double,
-    val cell: Long
+    @Transient val cell: Long = 0L
 ) {
     companion object {
         fun fromCSV(resourcePath: String, cellResolution: Int = 15): List<Waypoint> {
@@ -55,7 +57,7 @@ data class Waypoint(
  * @return A `Pair` containing the furthest waypoint and its distance from the starting waypoint, or `null` if
  * the `List` does not contain enough waypoints
  */
-fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double = EARTH_RADIUS): Pair<Waypoint, Double>? {
+fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double): Pair<Waypoint, Double>? {
     val h3 = H3Singleton.h3
     val startingPoint = this.firstOrNull()?.let {
         LatLng(it.latitude, it.longitude)
@@ -78,7 +80,7 @@ fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double = EARTH_RADIUS): Pai
  * @param earthRadius the radius of the Earth in Km
  * @return Count of points outside geofence
  */
-fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double = EARTH_RADIUS): Int {
+fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double): Int {
     val h3 = H3Singleton.h3
     return this.count {
         val currentPoint = LatLng(it.latitude, it.longitude)
@@ -127,7 +129,7 @@ fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int> {
  * @param earthRadius the radius of the Earth in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
-fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double = EARTH_RADIUS): Pair<Waypoint, Int> {
+fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double): Pair<Waypoint, Int> {
     val h3 = H3Singleton.h3
     return this.map { waypoint ->
         val currentPoint = LatLng(waypoint.latitude, waypoint.longitude)
@@ -152,7 +154,7 @@ fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Do
  * @param earthRadius the radius of the Earth in Km
  * @return The number of points in the area
  */
-fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double = EARTH_RADIUS): Int {
+fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double): Int {
     val h3 = H3Singleton.h3
     return this.fold(0) {acc, w ->
         val wp = LatLng(w.latitude, w.longitude)
@@ -163,7 +165,7 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
     }
 }
 
-fun List<Waypoint>.distanceTravelledExact(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledExact(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
@@ -175,7 +177,7 @@ fun List<Waypoint>.distanceTravelledExact(earthRadius: Double = EARTH_RADIUS): D
     } * earthRadius
 }
 
-fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double): Double {
     val h3 = H3Singleton.h3
 
     if (this.size>1) {
@@ -194,7 +196,7 @@ fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EART
 
 }
 
-fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
