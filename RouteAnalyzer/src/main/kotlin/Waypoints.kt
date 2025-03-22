@@ -4,6 +4,8 @@ import com.uber.h3core.AreaUnit
 import com.uber.h3core.H3Core
 import com.uber.h3core.LengthUnit
 import com.uber.h3core.util.LatLng
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.annotations.DataSchema
 import org.jetbrains.kotlinx.dataframe.api.ParserOptions
@@ -11,6 +13,8 @@ import org.jetbrains.kotlinx.dataframe.api.add
 import org.jetbrains.kotlinx.dataframe.api.cast
 import org.jetbrains.kotlinx.dataframe.api.toList
 import org.jetbrains.kotlinx.dataframe.io.readCSV
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
 import kotlin.math.*
 
@@ -18,19 +22,19 @@ private object H3Singleton {
     val h3: H3Core = H3Core.newInstance()
 }
 
-const val EARTH_RADIUS: Double = 6371.0088 // In Km
 
+@Serializable
 @DataSchema(isOpen = false)
 data class Waypoint(
     val timestamp: Double,
     val latitude: Double,
     val longitude: Double,
-    val cell: Long
+    @Transient val cell: Long = 0L
 ) {
     companion object {
         fun fromCSV(resourcePath: String, cellResolution: Int = 15): List<Waypoint> {
             val h3 = H3Singleton.h3
-            val inputStream = object {}.javaClass.getResourceAsStream(resourcePath)
+            val inputStream = Files.newInputStream(Paths.get(resourcePath))
                 ?: throw IllegalArgumentException("File not found: $resourcePath")
 
             return DataFrame.readCSV(
@@ -55,7 +59,7 @@ data class Waypoint(
  * @return A `Pair` containing the furthest waypoint and its distance from the starting waypoint, or `null` if
  * the `List` does not contain enough waypoints
  */
-fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double = EARTH_RADIUS): Pair<Waypoint, Double>? {
+fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double): Pair<Waypoint, Double>? {
     val h3 = H3Singleton.h3
     val startingPoint = this.firstOrNull()?.let {
         LatLng(it.latitude, it.longitude)
@@ -71,16 +75,16 @@ fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double = EARTH_RADIUS): Pai
 }
 
 /**
- * Computes the number of points outside the specified geofence
+ * Finds the list of points outside a user provided geofence
  *
  * @param geofenceCenter the center of the geofence
  * @param geofenceRadius the radius of the geofence in Km
  * @param earthRadius the radius of the Earth in Km
- * @return Count of points outside geofence
+ * @return List of points outside the geofence
  */
-fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double = EARTH_RADIUS): Int {
+fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadius: Double, earthRadius: Double): List<Waypoint> {
     val h3 = H3Singleton.h3
-    return this.count {
+    return this.filter {
         val currentPoint = LatLng(it.latitude, it.longitude)
         h3.greatCircleDistance(geofenceCenter, currentPoint, LengthUnit.rads) * earthRadius > geofenceRadius
     }
@@ -93,7 +97,8 @@ fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadi
  * @param areaRadius the desired minimum area radius in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
-fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int> {
+fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? {
+    if (this.size < 2) return null
     val h3 = H3Singleton.h3
     val areaKm2 = Math.PI * areaRadius.pow(2.0)
     val closestResolution = (0..15).reduce { acc, i ->
@@ -127,7 +132,7 @@ fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int> {
  * @param earthRadius the radius of the Earth in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
-fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double = EARTH_RADIUS): Pair<Waypoint, Int> {
+fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double): Pair<Waypoint, Int> {
     val h3 = H3Singleton.h3
     return this.map { waypoint ->
         val currentPoint = LatLng(waypoint.latitude, waypoint.longitude)
@@ -152,7 +157,7 @@ fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Do
  * @param earthRadius the radius of the Earth in Km
  * @return The number of points in the area
  */
-fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double = EARTH_RADIUS): Int {
+fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double): Int {
     val h3 = H3Singleton.h3
     return this.fold(0) {acc, w ->
         val wp = LatLng(w.latitude, w.longitude)
@@ -163,7 +168,7 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
     }
 }
 
-fun List<Waypoint>.distanceTravelledExact(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledExact(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
@@ -175,7 +180,7 @@ fun List<Waypoint>.distanceTravelledExact(earthRadius: Double = EARTH_RADIUS): D
     } * earthRadius
 }
 
-fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double): Double {
     val h3 = H3Singleton.h3
 
     if (this.size>1) {
@@ -183,8 +188,6 @@ fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EART
         val second = LatLng(this[1].latitude, this[1].longitude)
         var waypointsDistance = h3.greatCircleDistance(first, second, LengthUnit.rads) * earthRadius
         waypointsDistance = waypointsRealDistance(waypointsDistance)
-
-        println("Distanza tra waypoints :$waypointsDistance")
         return waypointsDistance*(this.size -2)
     }
     else {
@@ -194,7 +197,7 @@ fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double = EART
 
 }
 
-fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double = EARTH_RADIUS): Double {
+fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
@@ -203,7 +206,6 @@ fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double = EARTH_RAD
         val wp1 = LatLng(this[i].latitude, this[i].longitude)
         val wp2 = LatLng(w.latitude, w.longitude)
         if (i>1 && (wp1==wp2) && i<this.size-2){
-            println("CAMPIO PERCORSO: $wp1")
             val wp0 = LatLng(this[i-1].latitude, this[i-1].longitude)
             val waypointsDistance = h3.greatCircleDistance(wp0, wp2, LengthUnit.rads) * earthRadius
             val oldWaypointsDistance = waypointsRealDistance(waypointsDistance)
@@ -231,17 +233,14 @@ private fun waypointsRealDistance(areaDistance: Double) : Double {
 }
 
 fun List<Waypoint>.printStops() {
-    println("\nPATH: ")
-
-    println("Starting point: " + LatLng(this[0].latitude, this[0].longitude))
-
+    //println("Starting point: " + LatLng(this[0].latitude, this[0].longitude))
     this.subList(1, this.size).forEachIndexed { i: Int, w: Waypoint ->
         val wp1 = LatLng(this[i].latitude, this[i].longitude)
         val wp2 = LatLng(w.latitude, w.longitude)
         if ((i > 1) && (wp1 == wp2) && (i < (this.size - 2))){
-            println("Intermediate stop: $wp1")
+            //println("Intermediate stop: $wp1")
         }
     }
-    println("Arrival point: " + LatLng(this.last().latitude, this.last().longitude))
+    //println("Arrival point: " + LatLng(this.last().latitude, this.last().longitude))
 }
 
