@@ -97,7 +97,8 @@ fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadi
  * @param areaRadius the desired minimum area radius in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
-fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int> {
+fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? {
+    if (this.size < 2) return null
     val h3 = H3Singleton.h3
     val areaKm2 = Math.PI * areaRadius.pow(2.0)
     val closestResolution = (0..15).reduce { acc, i ->

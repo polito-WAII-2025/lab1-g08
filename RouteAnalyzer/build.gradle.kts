@@ -17,9 +17,10 @@ repositories {
 dependencies {
     implementation("com.uber:h3:4.1.1")
     implementation ("org.jetbrains.kotlinx:dataframe:0.15.0-RC3")
-    implementation("org.slf4j:slf4j-nop:2.0.17")
+    implementation("org.slf4j:slf4j-simple:2.0.3")
     implementation("org.yaml:snakeyaml:2.3")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.11")
     testImplementation(kotlin("test"))
 }
 
