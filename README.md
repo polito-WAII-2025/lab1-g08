@@ -2,8 +2,29 @@
 # lab1-wa2025
 
 ## Group Members
-- Arbore Giuseppe
-- Bordino Luca
-- Di Leo Stefano
+- [Arbore Giuseppe](https://github.com/GiuseppeArbore)
+- [Bordino Luca](https://github.com/lbordino)
+- [Di Leo Stefano](https://github.com/dlste)
 - [Santoro Alice](https://github.com/AliceSantoro)
 
+# Project Setup
+
+## Description
+This project mounts a volume in the `assets` directory, which contains the following required files:
+- `waypoints.csv`
+- `custom-parameters.yml`
+
+The generated outputs are stored in the `output.js` file.
+
+## Installation & Usage
+1. Ensure that the `assets` directory contains `waypoints.csv` and `custom-parameters.yml` before running the script.
+2. The `custom-parameters.yml` file must include the following parameters:
+- `earthRadiusKm` 
+- `geofenceCenterLatitude`
+- `geofenceCenterLongitude`
+- `geofenceRadiusKm`
+- *(Optional)* `mostFrequentedAreaRadiusKm`
+3. The computation results will be available in the output.js file
+
+## Docker command
+``docker build -f Dockerfile -t <image_tag> . && docker run -v <path_to_local_folder>:/app/assets <image_tag> ``
