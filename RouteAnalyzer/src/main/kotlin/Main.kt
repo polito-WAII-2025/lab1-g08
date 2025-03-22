@@ -26,7 +26,7 @@ fun main() {
         val mostFrequentedAreaPair = points.mostFrequentedArea(parameters.mostFrequentedAreaRadiusKm).let {
             it ?: (handleNullabilty("cannot compute most frequent area, using default") to 0)
         }
-        val wayPointsNumberOutsideGeofence = points.waypointsOutsideGeofence(
+        val waypointsNumberOutsideGeofence = points.waypointsOutsideGeofence(
             LatLng(parameters.geofenceCenterLatitude, parameters.geofenceCenterLongitude),
             parameters.geofenceRadiusKm,
             parameters.earthRadiusKm
@@ -51,8 +51,8 @@ fun main() {
                     parameters.geofenceCenterLongitude
                 ),
                 areaOrDistance = parameters.geofenceRadiusKm,
-                count = wayPointsNumberOutsideGeofence,
-                waypoints = listOf(), //TODO change to the waypoints outside the geofence
+                count = waypointsNumberOutsideGeofence.size,
+                waypoints = waypointsNumberOutsideGeofence,
                 firstParamName = "centralWaypoint",
                 secondParamName = "areaRadiusKm",
                 thirdParamName = "count",
