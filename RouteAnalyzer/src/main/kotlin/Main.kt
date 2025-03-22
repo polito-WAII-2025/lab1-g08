@@ -3,6 +3,7 @@ package it.polito.g08
 import com.uber.h3core.util.LatLng
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.encodeToStream
 import mu.KotlinLogging
 import org.slf4j.event.Level
@@ -61,6 +62,15 @@ fun main() {
         )
         File("assets/output.json").outputStream().use { outputStream ->
             Json.encodeToStream(json, outputStream)
+        }
+
+        val jsonAdvanced = mapOf(
+            "stopPoints" to Json.encodeToJsonElement(points.getStops()),
+            "distanceByPoints" to Json.encodeToJsonElement(points.distanceTravelledByDistancePoints(parameters.earthRadiusKm)),
+            "distanceAsCrowFlies" to Json.encodeToJsonElement(points.distanceTravelledByArea(parameters.earthRadiusKm))
+        )
+        File("assets/output-advanced.json").outputStream().use { outputStream ->
+            Json.encodeToStream(jsonAdvanced, outputStream)
         }
     } catch (e: Exception) {
         logger.error { "An error occurred: $e" }
