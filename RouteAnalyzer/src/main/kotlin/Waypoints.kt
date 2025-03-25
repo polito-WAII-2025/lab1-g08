@@ -60,6 +60,8 @@ data class Waypoint(
  * the `List` does not contain enough waypoints
  */
 fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double): Pair<Waypoint, Double>? {
+    if (this.size < 2 || earthRadius < 0) return null
+
     val h3 = H3Singleton.h3
     val startingPoint = this.firstOrNull()?.let {
         LatLng(it.latitude, it.longitude)
@@ -98,7 +100,7 @@ fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadi
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
 fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? {
-    if (this.size < 2) return null
+    if (this.isEmpty()) return null
     val h3 = H3Singleton.h3
     val areaKm2 = Math.PI * areaRadius.pow(2.0)
     val closestResolution = (0..15).reduce { acc, i ->
@@ -132,6 +134,7 @@ fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? 
  * @param earthRadius the radius of the Earth in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
+@Deprecated("This is quadratic, might not be needed")
 fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double): Pair<Waypoint, Int> {
     val h3 = H3Singleton.h3
     return this.map { waypoint ->
@@ -157,6 +160,7 @@ fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Do
  * @param earthRadius the radius of the Earth in Km
  * @return The number of points in the area
  */
+@Deprecated("Never used")
 fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double): Int {
     val h3 = H3Singleton.h3
     return this.fold(0) {acc, w ->
