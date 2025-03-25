@@ -172,6 +172,16 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
     }
 }
 
+/**
+ * Calculates the path's length by summing the distance of every pair of consecutive waypoints
+ * This is slightly different from `distanceTravelledByArea` because the generator places
+ * waypoints by calculating their distance following the road. Consequently
+ * `distanceTravelledByDistancePoints` better approximates the calculation made by the RouteGenerator
+ * application, while `distanceTravelledByArea` can cut road turns and provides a slightly lower estimate.
+ *
+ * @param earthRadius The radius of the earth in Km
+ * @return the path's length
+ */
 fun List<Waypoint>.distanceTravelledByArea(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
@@ -184,7 +194,16 @@ fun List<Waypoint>.distanceTravelledByArea(earthRadius: Double): Double {
     } * earthRadius
 }
 
-
+/**
+ * Calculates the path's length by trying to deduce the waypoint distance set in the RouteGenerator
+ * application. This is slightly different from `distanceTravelledByArea` because the generator places
+ * waypoints by calculating their distance following the road. Consequently
+ * `distanceTravelledByDistancePoints` better approximates the calculation made by the RouteGenerator
+ * application, while `distanceTravelledByArea` can cut road turns and provides a slightly lower estimate.
+ *
+ * @param earthRadius The radius of the earth in Km
+ * @return the path's length
+ */
 fun List<Waypoint>.distanceTravelledByDistancePoints(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
@@ -220,6 +239,13 @@ private fun waypointsRealDistance(areaDistance: Double) : Double {
     }
 }
 
+/**
+ * When calculating a path with `n` stops, the RouteGenerator creates `n-1` paths where
+ * the end point of path `x` is the same as the starting point of path `x+1`. This function finds
+ * duplicate consecutive Waypoints to reconstruct the stops chosen by the user.
+ *
+ * @return A list of `Waypoints` corresponding to the stops chosen by the user.
+ */
 fun List<Waypoint>.getStops() : List<Waypoint> {
     return listOf(this.first()) + this.subList(1, this.size).filterIndexed { i: Int, w: Waypoint ->
         val wp1 = LatLng(this[i].latitude, this[i].longitude)
