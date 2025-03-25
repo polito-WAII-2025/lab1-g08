@@ -22,6 +22,25 @@ val testWaypoints = listOf(
     Waypoint(1742653227971.538,45.06359,7.66359),
     Waypoint(1742653227988.041,45.06440,7.66416)
 )
+val testWaypointMultiplestops = listOf(
+    Waypoint(1742653227757.0,45.06363,7.65908),
+    Waypoint(1742653227773.503,45.06281,7.65854),
+    Waypoint(1742653227790.0059,45.06201,7.65797),
+    Waypoint(1742653227790.0059,45.06201,7.65797),
+    Waypoint(1742653227806.5088,45.06189,7.65712),
+    Waypoint(1742653227823.0117,45.06230,7.65603),
+    Waypoint(1742653227839.5146,45.06178,7.65697),
+    Waypoint(1742653227856.0176,45.06134,7.65809),
+    Waypoint(1742653227872.5205,45.06091,7.65921),
+    Waypoint(1742653227872.5205,45.06091,7.65921),
+    Waypoint(1742653227889.0234,45.06048,7.66032),
+    Waypoint(1742653227905.5264,45.06038,7.66130),
+    Waypoint(1742653227922.0293,45.06118,7.66187),
+    Waypoint(1742653227938.5322,45.06199,7.66244),
+    Waypoint(1742653227955.0352,45.06279,7.66301),
+    Waypoint(1742653227971.538,45.06359,7.66359),
+    Waypoint(1742653227988.041,45.06440,7.66416)
+)
 
 class WaypointsTests {
     @Test
@@ -129,5 +148,17 @@ class WaypointsTests {
     fun distanceTravelledByDistancePointsOnlyOneElement() {
         val res = listOf<Waypoint>().distanceTravelledByDistancePoints(EARTH_RADIUS)
         assertEquals(0.0, res)
+    }
+
+    @Test
+    fun getStopsOnlyFirstAndLast() {
+        val res = testWaypoints.getStops()
+        assertEquals(listOf(testWaypoints.first(), testWaypoints.last()), res)
+    }
+
+    @Test
+    fun getStopsWithIntermediateStops() {
+        val res = testWaypointMultiplestops.getStops()
+        assertEquals(listOf(testWaypointMultiplestops.first(), testWaypointMultiplestops[3], testWaypointMultiplestops[9], testWaypointMultiplestops.last()), res)
     }
 }
