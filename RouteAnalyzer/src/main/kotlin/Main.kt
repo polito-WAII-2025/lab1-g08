@@ -15,17 +15,17 @@ val logger = KotlinLogging.logger {}
 fun main() {
     logger.atLevel(Level.DEBUG)
     try {
-        val handleNullabilty: (String) -> Waypoint =
+        val handleNullability: (String) -> Waypoint =
             { msg -> logger.info {msg}
                 Waypoint(0.0, 0.0, 0.0, 0)
             }
         val points = Waypoint.fromCSV("assets/waypoints.csv")
         val parameters = CustomParameters.fromYAML("assets/custom-parameters.yml", points)
         val maxDistanceFromStartPair = points.maxDistanceFromStart(parameters.earthRadiusKm).let {
-            it ?: (handleNullabilty("Cannot compute max distance, using default") to 0.0)
+            it ?: (handleNullability("Cannot compute max distance, using default") to 0.0)
         }
         val mostFrequentedAreaPair = points.mostFrequentedArea(parameters.mostFrequentedAreaRadiusKm).let {
-            it ?: (handleNullabilty("cannot compute most frequent area, using default") to 0)
+            it ?: (handleNullability("cannot compute most frequent area, using default") to 0)
         }
         val waypointsNumberOutsideGeofence = points.waypointsOutsideGeofence(
             LatLng(parameters.geofenceCenterLatitude, parameters.geofenceCenterLongitude),
@@ -72,6 +72,7 @@ fun main() {
         File("assets/output-advanced.json").outputStream().use { outputStream ->
             Json.encodeToStream(jsonAdvanced, outputStream)
         }
+        logger.info { "Computation completed" }
     } catch (e: Exception) {
         logger.error { "An error occurred: $e" }
     }

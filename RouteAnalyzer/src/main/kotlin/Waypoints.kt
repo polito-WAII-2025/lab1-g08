@@ -60,6 +60,8 @@ data class Waypoint(
  * the `List` does not contain enough waypoints
  */
 fun List<Waypoint>.maxDistanceFromStart(earthRadius: Double): Pair<Waypoint, Double>? {
+    if (this.size < 2 || earthRadius < 0) return null
+
     val h3 = H3Singleton.h3
     val startingPoint = this.firstOrNull()?.let {
         LatLng(it.latitude, it.longitude)
@@ -98,7 +100,7 @@ fun List<Waypoint>.waypointsOutsideGeofence(geofenceCenter: LatLng, geofenceRadi
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
 fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? {
-    if (this.size < 2) return null
+    if (this.isEmpty()) return null
     val h3 = H3Singleton.h3
     val areaKm2 = Math.PI * areaRadius.pow(2.0)
     val closestResolution = (0..15).reduce { acc, i ->
@@ -132,6 +134,7 @@ fun List<Waypoint>.mostFrequentedArea(areaRadius: Double): Pair<Waypoint, Int>? 
  * @param earthRadius the radius of the Earth in Km
  * @return A `Pair` containing the coordinates of the most frequented area and the corresponding number of waypoints
  */
+@Deprecated("This is quadratic, might not be needed")
 fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Double): Pair<Waypoint, Int> {
     val h3 = H3Singleton.h3
     return this.map { waypoint ->
@@ -157,6 +160,7 @@ fun List<Waypoint>.mostFrequentedAreaPrecise(areaRadius: Double, earthRadius: Do
  * @param earthRadius the radius of the Earth in Km
  * @return The number of points in the area
  */
+@Deprecated("Never used")
 fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: Double): Int {
     val h3 = H3Singleton.h3
     return this.fold(0) {acc, w ->
@@ -168,6 +172,16 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
     }
 }
 
+/**
+ * Calculates the path's length by summing the distance of every pair of consecutive waypoints
+ * This is slightly different from `distanceTravelledByArea` because the generator places
+ * waypoints by calculating their distance following the road. Consequently
+ * `distanceTravelledByDistancePoints` better approximates the calculation made by the RouteGenerator
+ * application, while `distanceTravelledByArea` can cut road turns and provides a slightly lower estimate.
+ *
+ * @param earthRadius The radius of the earth in Km
+ * @return the path's length
+ */
 fun List<Waypoint>.distanceTravelledByArea(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
@@ -180,7 +194,16 @@ fun List<Waypoint>.distanceTravelledByArea(earthRadius: Double): Double {
     } * earthRadius
 }
 
-
+/**
+ * Calculates the path's length by trying to deduce the waypoint distance set in the RouteGenerator
+ * application. This is slightly different from `distanceTravelledByArea` because the generator places
+ * waypoints by calculating their distance following the road. Consequently
+ * `distanceTravelledByDistancePoints` better approximates the calculation made by the RouteGenerator
+ * application, while `distanceTravelledByArea` can cut road turns and provides a slightly lower estimate.
+ *
+ * @param earthRadius The radius of the earth in Km
+ * @return the path's length
+ */
 fun List<Waypoint>.distanceTravelledByDistancePoints(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
@@ -216,6 +239,13 @@ private fun waypointsRealDistance(areaDistance: Double) : Double {
     }
 }
 
+/**
+ * When calculating a path with `n` stops, the RouteGenerator creates `n-1` paths where
+ * the end point of path `x` is the same as the starting point of path `x+1`. This function finds
+ * duplicate consecutive Waypoints to reconstruct the stops chosen by the user.
+ *
+ * @return A list of `Waypoints` corresponding to the stops chosen by the user.
+ */
 fun List<Waypoint>.getStops() : List<Waypoint> {
     return listOf(this.first()) + this.subList(1, this.size).filterIndexed { i: Int, w: Waypoint ->
         val wp1 = LatLng(this[i].latitude, this[i].longitude)
