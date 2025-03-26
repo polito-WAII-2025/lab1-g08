@@ -168,7 +168,7 @@ fun List<Waypoint>.pointsInArea(point: LatLng, areaRadius: Double, earthRadius: 
     }
 }
 
-fun List<Waypoint>.distanceTravelledExact(earthRadius: Double): Double {
+fun List<Waypoint>.distanceTravelledByArea(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
@@ -180,24 +180,8 @@ fun List<Waypoint>.distanceTravelledExact(earthRadius: Double): Double {
     } * earthRadius
 }
 
-fun List<Waypoint>.distanceTravelledSuperApproximated(earthRadius: Double): Double {
-    val h3 = H3Singleton.h3
 
-    if (this.size>1) {
-        val first = LatLng(this[0].latitude, this[0].longitude)
-        val second = LatLng(this[1].latitude, this[1].longitude)
-        var waypointsDistance = h3.greatCircleDistance(first, second, LengthUnit.rads) * earthRadius
-        waypointsDistance = waypointsRealDistance(waypointsDistance)
-        return waypointsDistance*(this.size -2)
-    }
-    else {
-        // if there is only 1 point, the distance is 0
-        return 0.0
-    }
-
-}
-
-fun List<Waypoint>.distanceTravelledApproximated(earthRadius: Double): Double {
+fun List<Waypoint>.distanceTravelledByDistancePoints(earthRadius: Double): Double {
     if (this.size < 2)
         return 0.0
 
@@ -232,15 +216,10 @@ private fun waypointsRealDistance(areaDistance: Double) : Double {
     }
 }
 
-fun List<Waypoint>.printStops() {
-    //println("Starting point: " + LatLng(this[0].latitude, this[0].longitude))
-    this.subList(1, this.size).forEachIndexed { i: Int, w: Waypoint ->
+fun List<Waypoint>.getStops() : List<Waypoint> {
+    return listOf(this.first()) + this.subList(1, this.size).filterIndexed { i: Int, w: Waypoint ->
         val wp1 = LatLng(this[i].latitude, this[i].longitude)
         val wp2 = LatLng(w.latitude, w.longitude)
-        if ((i > 1) && (wp1 == wp2) && (i < (this.size - 2))){
-            //println("Intermediate stop: $wp1")
-        }
-    }
-    //println("Arrival point: " + LatLng(this.last().latitude, this.last().longitude))
+        ((i > 1) && (wp1 == wp2) && (i < (this.size - 2)))
+    } + this.last()
 }
-
