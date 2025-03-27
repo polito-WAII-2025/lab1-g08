@@ -69,7 +69,7 @@ fun main() {
             "distanceByPoints" to Json.encodeToJsonElement(points.distanceTravelledByDistancePoints(parameters.earthRadiusKm)),
             "distanceAsCrowFlies" to Json.encodeToJsonElement(points.distanceTravelledByArea(parameters.earthRadiusKm))
         )
-        File("evaluation/output-advanced.json").outputStream().use { outputStream ->
+        File("evaluation/output_advanced.json").outputStream().use { outputStream ->
             Json.encodeToStream(jsonAdvanced, outputStream)
         }
         logger.info { "Computation completed" }
