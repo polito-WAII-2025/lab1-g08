@@ -17,7 +17,7 @@ This project mounts a volume in the `evaluation` directory, which contains the f
 The generated outputs are stored in the `output.js` and  `output_advanced.js` file in the same directory.
 
 ## Installation & Usage
-1. Ensure that the `assets` directory contains `waypoints.csv` and `custom-parameters.yml` before running the application.
+1. Ensure that the `evaluation` directory contains `waypoints.csv` and `custom-parameters.yml` before running the application.
 2. The `custom-parameters.yml` file must include the following parameters:
 - `earthRadiusKm` 
 - `geofenceCenterLatitude`
