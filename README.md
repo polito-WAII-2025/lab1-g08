@@ -25,5 +25,17 @@ The generated outputs are stored in the `output.js` and  `output_advanced.js` fi
 - `geofenceRadiusKm`
 - *(Optional)* `mostFrequentedAreaRadiusKm`
 
-## Docker command
-``docker build -f Dockerfile -t <image_tag> . && docker run -v <path_to_local_folder>:/app/evaluation <image_tag> ``
+## Build Docker Image
+Run the following from the [directory](./RouteAnalyzer) containing the Dockerfile.
+`<image_tag>` is an arbitrary name (i.e. `analyzer`).
+
+`docker build -f Dockerfile -t <image_tag> .`
+
+## Run Docker Image
+When running the following command, ensure that the chosen directory (`<path_to_local_folder>`) contains the `waypoints.csv` file:
+
+`<image_tag>` is the same as the one in [Build Docker Image](#build-docker-image).
+
+`<path_to_local_folder>` is the absolute path to the target directory.
+
+`docker run -v "<path_to_local_folder>:/app/evaluation" <image_tag>`
