@@ -19,8 +19,8 @@ fun main() {
             { msg -> logger.info {msg}
                 Waypoint(0.0, 0.0, 0.0, 0)
             }
-        val points = Waypoint.fromCSV("assets/waypoints.csv")
-        val parameters = CustomParameters.fromYAML("assets/custom-parameters.yml", points)
+        val points = Waypoint.fromCSV("evaluation/waypoints.csv")
+        val parameters = CustomParameters.fromYAML("evaluation/custom-parameters.yml", points)
         val maxDistanceFromStartPair = points.maxDistanceFromStart(parameters.earthRadiusKm).let {
             it ?: (handleNullability("Cannot compute max distance, using default") to 0.0)
         }
@@ -60,7 +60,7 @@ fun main() {
                 fourthParamName = "waypoints",
             )
         )
-        File("assets/output.json").outputStream().use { outputStream ->
+        File("evaluation/output.json").outputStream().use { outputStream ->
             Json.encodeToStream(json, outputStream)
         }
 
@@ -69,7 +69,7 @@ fun main() {
             "distanceByPoints" to Json.encodeToJsonElement(points.distanceTravelledByDistancePoints(parameters.earthRadiusKm)),
             "distanceAsCrowFlies" to Json.encodeToJsonElement(points.distanceTravelledByArea(parameters.earthRadiusKm))
         )
-        File("assets/output-advanced.json").outputStream().use { outputStream ->
+        File("evaluation/output-advanced.json").outputStream().use { outputStream ->
             Json.encodeToStream(jsonAdvanced, outputStream)
         }
         logger.info { "Computation completed" }
